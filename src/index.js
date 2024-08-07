@@ -37,7 +37,22 @@ import connect from "./db/index.js";
 dotenv.config({
     path: "./.env"
 }); // Load environment variables from .env file
-connect();
 
-
+//when ee use async to coonect db after completion it gives  it gives promise that we use here
+connect()
+.then(()=>
+{
+app.listen(process.env.PORT || 8000 ,  () => {
+    console.log("Server is running on port", process.env.PORT);
+});
+app.on('error', (error) => {
+    console.log(error, "Error in starting the server");
+    throw error;
+    throw error;
+});
+})
+.catch((error)=>
+{
+    console.log("error in connecting to db");
+})
 
