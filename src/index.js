@@ -1,58 +1,46 @@
-// import mongoose from "mongoose";
-// import express from "express";
-// import dotenv from 'dotenv';
-// import { DB_NAME } from "../src/constants.js";
-
-// dotenv.config(); // Load environment variables from .env file
-
-// const app = express();
-
-// (async () => {
-//   try {
-//     const mongoUri = process.env.MONGO_URI;
-//     console.log("Connecting to MongoDB with URI:", mongoUri); // Log the URI being used
-//     await mongoose.connect(`${mongoUri}/${DB_NAME}`);
-//     console.log("Successfully connected to MongoDB");
-//     app.on('error', (error) => {
-//       console.log(error, "Error in starting the server");
-//       throw error;
-//     });
-
-//     app.listen(process.env.PORT, () => {
-//       console.log("Server is running on port", process.env.PORT);
-//     });
-//   } catch (error) {
-//     console.error("Error in connecting to the database:", error.message);
-//     process.exit(1); // Exit the process with an error code
-//   }
-// })();
-// export default app;
-
-
-
-
-
 import dotenv from 'dotenv';
 import connect from "./db/index.js";
+import { app } from "./app.js";
+
 dotenv.config({
-    path: "./.env"
+  path: "./env"
 }); // Load environment variables from .env file
 
-//when ee use async to coonect db after completion it gives  it gives promise that we use here
+// Connect to the database
 connect()
-.then(()=>
-{
-app.listen(process.env.PORT || 8000 ,  () => {
-    console.log("Server is running on port", process.env.PORT);
-});
-app.on('error', (error) => {
-    console.log(error, "Error in starting the server");
-    throw error;
-    throw error;
-});
-})
-.catch((error)=>
-{
-    console.log("error in connecting to db");
-})
+  .then(() => {
+    // Start the server only after a successful DB connection
+    let PORT = parseInt(process.env.PORT, 10) || 8001;
 
+    const startServer = (port) => {
+      app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+      }).on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+          console.error(`Port ${port} is already in use. Trying another port...`);
+          PORT++;
+          if (PORT < 65536) {
+            startServer(PORT);
+          } else {
+            console.error('No available ports.');
+            process.exit(1);
+          }
+        } else {
+          console.error(`Error: ${err}`);
+        }
+      });
+    };
+
+    startServer(PORT);
+  })
+  .catch((error) => {
+    console.error("Error in connecting to DB:", error.message);
+    process.exit(1); // Exit the process with a failure code
+  });
+
+// Handle server errors
+app.on('error', (error) => {
+  console.error("Error in starting the server:", error);
+});
+
+export default { connect };

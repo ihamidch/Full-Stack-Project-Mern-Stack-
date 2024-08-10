@@ -16,7 +16,7 @@ const connect = async () => {
         console.log("Successfully connected to MongoDB", mongoose.connection.host); // Log the host from mongoose.connection
         app.on('error', (error) => {
             console.log(error, "Error in starting the server");
-            throw error;
+            // throw error;
         });
         app.listen(process.env.PORT, () => {
             console.log("Server is running on port", process.env.PORT);
